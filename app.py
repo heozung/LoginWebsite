@@ -1,5 +1,7 @@
+import logging
 import os
 import pathlib
+import requests
 
 import cachecontrol as cachecontrol
 import google.auth.transport.requests
@@ -7,8 +9,9 @@ from flask import Flask, abort, session, redirect, request
 from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
 
-loginForm = Flask("Google Login App")
-loginForm.secret_key = "NA"
+
+app = Flask("Google Login App")
+app.secret_key = "NA"
 
 GOOGLE_CLIENT_ID ="441614906312-di2a4sf0cd71f5l0tt36ak4b9iips5t8.apps.googleusercontent.com"
 
@@ -32,45 +35,54 @@ def login_required(function):
     return wrapper
 
 
-@loginForm.route("/login")
+@app.route("/login")
 def login():
     authorization_url, state = flow.authorization_url()
-    session[state] = state
+    session["state"] = state
     return redirect(authorization_url)
 
 
     #return redirect("/protected_area")
 
 
-@loginForm.route("/callback")
+@app.route("/callback")
 def callback():
-    flow.fetch_token(authorization_respose=request.url)
+    flow.fetch_token(authorization_response=request.url)
+
     if not session["state"] == request.args["state"]:
-        abort(500)
+        abort(500)  # State does not match!
+
     credentials = flow.credentials
-    request_session = request.session()
-    cache_session = cachecontrol.Cachecontrol(request_session)
-    token_session = google.auth.transport.requests.request(session = cache_session)
+    request_session = requests.session()
+    cached_session = cachecontrol.CacheControl(request_session)
+    token_request = google.auth.transport.requests.Request(session=cached_session)
 
-    id_info_gg = id_token.verify_oauth2_token(id_token= credentials._id_token, request=token_session, audience= GOOGLE_CLIENT_ID)
-    return id_info_gg
+    id_info = id_token.verify_oauth2_token(
+        id_token=credentials._id_token,
+        request=token_request,
+        audience=GOOGLE_CLIENT_ID
+    )
+
+    session["google_id"] = id_info.get("sub")
+    session["name"] = id_info.get("name")
+    return redirect("/protected_area")
 
 
 
-@loginForm.route("/logout")
+@app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/index_pointer")
+    return redirect("/")
 
-@loginForm.route("/")
+@app.route("/")
 def index_pointer():
     return "Hello World" "<a href='/login'><button> Login </button> </a>"
 
-@loginForm.route(("/protected_area"))
+@app.route(("/protected_area"))
 #@login_required
 def protected_area():
-    return "Protected""<a href='/logout'><button> Logout </button> </a>"
+    return f"Hello {session['name']}! <br/> <a href='/logout'><button>Logout</button></a>"
 
 
 if __name__ == '__main__':
-    loginForm.run(debug=True)
+    app.run(debug=True)
