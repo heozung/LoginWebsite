@@ -1,11 +1,12 @@
 import logging
 import os
 import pathlib
+
 import requests
 
 import cachecontrol as cachecontrol
 import google.auth.transport.requests
-from flask import Flask, abort, session, redirect, request
+from flask import Flask, abort, session, redirect, request, render_template
 from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
 
@@ -81,7 +82,8 @@ def index_pointer():
 @app.route(("/protected_area"))
 #@login_required
 def protected_area():
-    return f"Hello {session['name']}! <br/> <a href='/logout'><button>Logout</button></a>"
+    return render_template('InputGoogle.html', name = f"Hello {session['name']}!")
+
 
 
 if __name__ == '__main__':
