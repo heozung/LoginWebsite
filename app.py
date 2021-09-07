@@ -15,7 +15,13 @@ from google_auth_oauthlib.flow import Flow
 
 
 
-
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    passwd="root1234",
+    database="userinfordb"
+)
+mycursor = db.cursor()
 
 
 
@@ -79,7 +85,16 @@ def callback() :
     session["google_id"] = id_info.get("sub")
     session["name"] = id_info.get("name")
     session["email"] = id_info.get("email")
-    return redirect("/protected_area")
+
+
+    sqlquery = "SELECT occupation FROM LoginInfo WHERE email=" + f" {repr(session['email'])}"
+    mycursor.execute(sqlquery)
+    row = mycursor.fetchone()
+    print(row)
+    if row == None:
+        return redirect("/protected_area")
+    return redirect("/blogswrt")
+
 
 
 @app.route("/logout")
@@ -93,6 +108,8 @@ def index_pointer() :
     return "Hello World" "<a href='/loginGoogle'><button> Login Google </button> </a>" "<a href='/loginFacebook'><button> Login Facebook </button> </a>"
 
 
+
+
 @app.route("/protected_area",methods=["POST","GET"])
 # @login_required
 def protected_area():
@@ -100,10 +117,21 @@ def protected_area():
         fullname = request.form["fnm"]
         occupation = request.form["ocp"]
         emailgoogle = session['email']
-        dataclas.mycursor.execute("INSERT INTO userinfordb (name, occupation, email) VALUES (fullname, occupation, emailgoogle)")
+
+
+        mycursor.execute("INSERT INTO LoginInfo(name, occupation, email) VALUES (%s,%s,%s)", (fullname, occupation, emailgoogle))
+        db.commit()
+
         return redirect("/")
     else:
         return render_template('InputGoogle.html', name=f"Hello {session['name'], session['email']}!")
+
+
+@app.route("/blogswrt")
+def blogswrt():
+    return "Hello!"
+
+
 
 
 if __name__ == '__main__':
