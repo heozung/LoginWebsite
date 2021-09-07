@@ -1,8 +1,11 @@
 import logging
 import os
 import pathlib
+from crypt import methods
 
+import mysql
 import requests
+import dataclas
 
 import cachecontrol as cachecontrol
 import google.auth.transport.requests
@@ -43,13 +46,16 @@ def login_required(function) :
     return wrapper
 
 
-@app.route("/login")
-def login() :
+@app.route("/loginGoogle")
+def loginGoogle() :
     authorization_url , state = flow.authorization_url()
     session["state"] = state
     return redirect(authorization_url)
 
     # return redirect("/protected_area")
+@app.route("/loginFacebook")
+def loginFacebook():
+    return "Hello Facebook"
 
 
 @app.route("/callback")
@@ -72,6 +78,7 @@ def callback() :
 
     session["google_id"] = id_info.get("sub")
     session["name"] = id_info.get("name")
+    session["email"] = id_info.get("email")
     return redirect("/protected_area")
 
 
@@ -83,14 +90,21 @@ def logout() :
 
 @app.route("/")
 def index_pointer() :
-    return "Hello World" "<a href='/login'><button> Login </button> </a>"
+    return "Hello World" "<a href='/loginGoogle'><button> Login Google </button> </a>" "<a href='/loginFacebook'><button> Login Facebook </button> </a>"
 
 
-@app.route(("/protected_area"))
+@app.route("/protected_area",methods=["POST","GET"])
 # @login_required
-def protected_area() :
-    return render_template('InputGoogle.html' , name=f"Hello {session['name']}!")
+def protected_area():
+    if request.method == "POST":
+        fullname = request.form["fnm"]
+        occupation = request.form["ocp"]
+        emailgoogle = session['email']
+        dataclas.mycursor.execute("INSERT INTO userinfordb (name, occupation, email) VALUES (fullname, occupation, emailgoogle)")
+        return redirect("/")
+    else:
+        return render_template('InputGoogle.html', name=f"Hello {session['name'], session['email']}!")
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     app.run(debug=True)
