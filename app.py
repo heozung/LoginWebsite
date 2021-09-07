@@ -112,6 +112,7 @@ def index_pointer() :
 
 @app.route("/protected_area",methods=["POST","GET"])
 # @login_required
+
 def protected_area():
     if request.method == "POST":
         fullname = request.form["fnm"]
