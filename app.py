@@ -122,6 +122,7 @@ def protected_area():
         mycursor.execute("INSERT INTO LoginInfo(name, occupation, email) VALUES (%s,%s,%s)", (fullname, occupation, emailgoogle))
         db.commit()
 
+
         return redirect("/")
     else:
         return render_template('InputGoogle.html', name=f"Hello {session['name'], session['email']}!")
