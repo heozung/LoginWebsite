@@ -127,9 +127,10 @@ def protected_area():
         return render_template('InputGoogle.html', name=f"Hello {session['name'], session['email']}!")
 
 
-@app.route("/blogswrt")
+@app.route("/blogswrt", methods= ["POST" , "GET"])
 def blogswrt():
-    return "Hello!"
+    #if request.method
+    return render_template('InputBlogs.html')
 
 
 
