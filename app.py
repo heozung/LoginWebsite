@@ -129,9 +129,21 @@ def protected_area():
         return render_template('InputGoogle.html', name=f"Hello {session['name'], session['email']}!")
 
 
-@app.route("/blogswrt", methods= ["POST" , "GET"])
+@app.route("/blogswrt", methods=['GET', 'POST'])
+@login_required
 def blogswrt():
-    #if request.method
+    if request.method == "POST":
+        tittle = request.form.get('inputTittle1')
+        content = request.form.get('inputContent1')
+        email = session['email']
+        print(session['email'])
+        print(tittle)
+        print(content)
+        mycursor.execute("INSERT INTO PostSaving(email, tittle, contentip) VALUES (%s,%s,%s)", (email, tittle, content))
+        print("Successful")
+        return ("/")
+        if not content:
+            abort(500)
     return render_template('InputBlogs.html')
 
 
