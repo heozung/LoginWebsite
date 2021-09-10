@@ -13,6 +13,9 @@ from flask import Flask , abort , session , redirect , request , render_template
 from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
 
+import flask_restful
+from flask_restful import Resource, Api
+
 
 
 db = mysql.connector.connect(
@@ -25,7 +28,9 @@ mycursor = db.cursor()
 
 
 
-app = Flask("Google Login App")
+app = Flask(__name__)
+api = Api(app)
+
 app.secret_key = "NA"
 
 GOOGLE_CLIENT_ID = "441614906312-di2a4sf0cd71f5l0tt36ak4b9iips5t8.apps.googleusercontent.com"
@@ -118,13 +123,17 @@ def protected_area():
         fullname = request.form["fnm"]
         occupation = request.form["ocp"]
         emailgoogle = session['email']
-
-
         mycursor.execute("INSERT INTO LoginInfo(name, occupation, email) VALUES (%s,%s,%s)", (fullname, occupation, emailgoogle))
         db.commit()
 
 
-        return redirect("/")
+
+        BASE = "http://127.0.0.1:5000/protected_area/"
+        #response = requests.get(BASE + "testget")
+        response = requests.get(BASE + "testget")
+
+        return print(response.json())
+
     else:
         return render_template('InputGoogle.html', name=f"Hello {session['name'], session['email']}!")
 
@@ -140,13 +149,16 @@ def blogswrt():
         print(tittle)
         print(content)
         mycursor.execute("INSERT INTO PostSaving(email, tittle, contentip) VALUES (%s,%s,%s)", (email, tittle, content))
-        print("Successful")
         return ("/")
         if not content:
             abort(500)
     return render_template('InputBlogs.html')
 
+class blogsact(Resource):
+    def get(self):
+        return {"data": "Hello World"}
 
+api.add_resource(blogsact,"/protected_area/testget")
 
 
 if __name__ == '__main__':

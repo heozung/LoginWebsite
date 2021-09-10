@@ -19,6 +19,9 @@ mycursor.execute("DESCRIBE PostSaving")
 for i in mycursor:
     print(i)
 
+#mycursor.execute("TRUNCATE LoginInfo")
+for i in mycursor:
+    print(i)
 #
 #mycursor.execute("SELECT occupation FROM LoginInfo WHERE email= 'lenhathungreo@gmail.com' ")
 #a = array.array('i')
